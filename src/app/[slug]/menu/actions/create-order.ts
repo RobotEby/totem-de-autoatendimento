@@ -6,7 +6,6 @@ import { z } from "zod";
 
 import { getRestaurantBySlug } from "@/data/get-restaurant-by-slug";
 import { cpfSchema, removeCpfPunctuation } from "@/helpers/cpf";
-import { toCents } from "@/helpers/format-currency";
 import { db } from "@/lib/prisma";
 import { getStripe } from "@/lib/stripe";
 
@@ -68,32 +67,40 @@ export const createOrder = async (rawInput: CreateOrderInput) => {
   });
 
   const origin = (await headers()).get("origin") as string;
-  const searchParams = new URLSearchParams();
-  searchParams.set("consumptionMethod", input.consumptionMethod);
-  searchParams.set("cpf", removeCpfPunctuation(input.customerCpf));
 
-  const session = await stripe.checkout.sessions.create({
-    payment_method_types: ["card"],
-    mode: "payment",
-    success_url: `${origin}/${input.slug}/success?${searchParams.toString()}`,
-    cancel_url: `${origin}/${input.slug}/orders?${searchParams.toString()}`,
-    metadata: {
-      orderId: order.id,
-    },
-    line_items: orderProducts.map(({ product, quantity }) => ({
-      price_data: {
-        currency: "brl",
-        product_data: {
-          name: product.name,
-          images: [product.imageUrl],
-        },
-        unit_amount: toCents(product.price),
+  try {
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ["card"],
+      mode: "payment",
+      success_url: `${origin}/${input.slug}/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${origin}/${input.slug}/menu?consumptionMethod=${input.consumptionMethod}`,
+      // Stripe requires at least 30 min; 31 leaves room for clock skew
+      expires_at: Math.floor(Date.now() / 1000) + 31 * 60,
+      metadata: {
+        orderId: order.id,
       },
-      quantity,
-    })),
-  });
-  if (!session.url) {
-    throw new Error("Missing Stripe checkout URL");
+      line_items: orderProducts.map(({ product, quantity }) => ({
+        price_data: {
+          currency: "brl",
+          product_data: {
+            name: product.name,
+            images: [product.imageUrl],
+          },
+          unit_amount: product.price,
+        },
+        quantity,
+      })),
+    });
+    if (!session.url) {
+      throw new Error("Missing Stripe checkout URL");
+    }
+    return { url: session.url };
+  } catch (error) {
+    // Without a session nothing would ever move this order out of PENDING
+    await db.order.update({
+      where: { id: order.id },
+      data: { status: "PAYMENT_FAILED" },
+    });
+    throw error;
   }
-  return { url: session.url };
 };

@@ -41,7 +41,7 @@ model Product {
   id             String         @id @default(uuid())
   name           String
   description    String
-  price          Float
+  price          Int // cents
   imageUrl       String
   ingredients    String[]
   orderProducts  OrderProduct[]
@@ -55,7 +55,7 @@ model Product {
 
 model Order {
   id                Int               @id @default(autoincrement())
-  total             Float
+  total             Int // cents
   status            OrderStatus
   consumptionMethod ConsumptionMethod
   restaurant        Restaurant        @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
@@ -74,7 +74,7 @@ model OrderProduct {
   order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
   orderId   Int
   quantity  Int
-  price     Float
+  price     Int // cents
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
