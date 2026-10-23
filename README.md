@@ -162,7 +162,8 @@ O projeto roda na Vercel sem configuração extra.
 2. No Stripe, em **Developers → Webhooks**, crie um endpoint para `https://<seu-domínio>/api/webhooks/stripe`.
 3. Selecione os eventos `checkout.session.completed` e `checkout.session.expired`.
 4. Copie o *signing secret* do endpoint para `STRIPE_WEBHOOK_SECRET_KEY`.
-5. Rode `npx prisma migrate deploy` apontando para o banco de produção.
+
+As migrations do banco rodam sozinhas: em deploys de produção, o `npm run build` executa `prisma migrate deploy` antes de gerar o site. Previews e builds locais não mexem no banco.
 
 ## Tecnologias
 
