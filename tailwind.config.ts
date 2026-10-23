@@ -57,20 +57,6 @@ export default {
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
       },
-      keyframes: {
-        float: {
-          "0%, 100%": { transform: "translateY(0px) rotate(-2deg)" },
-          "50%": { transform: "translateY(-15px) rotate(-2deg)" },
-        },
-        "float-delayed": {
-          "0%, 100%": { transform: "translateY(0px) rotate(4deg)" },
-          "50%": { transform: "translateY(-15px) rotate(4deg)" },
-        },
-      },
-      animation: {
-        float: "float 6s ease-in-out infinite",
-        "float-delayed": "float-delayed 7s ease-in-out infinite -3s",
-      },
     },
   },
 
