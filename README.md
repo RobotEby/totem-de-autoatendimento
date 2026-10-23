@@ -77,7 +77,6 @@ A aplicação é um único projeto Next.js, sem backend separado. Cada peça tem
 src/
 ├── app/                              # rotas (App Router)
 │   ├── layout.tsx                    # layout raiz: fonte e Toaster
-│   ├── page.tsx                      # landing page do projeto
 │   ├── api/webhooks/stripe/route.ts  # webhook do Stripe
 │   └── [slug]/                       # tudo o que pertence a um restaurante
 │       ├── layout.tsx                # CartProvider: um carrinho por restaurante
